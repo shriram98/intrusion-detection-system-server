@@ -1,8 +1,16 @@
 const express = require('express')
 const app = express()
+const cors = require('cors')
+const bodyParser = require('body-parser')
 const config = require('./config')
-const mongoose = require('mongoose')
+const fs = require('fs')
 
+const model = require('./middlewares/model')
+// const mongoose = require('mongoose')
+
+app.use(cors())
+app.use(bodyParser.urlencoded({extended : false}))
+app.use(bodyParser.json())
 
 //database initialisation
 
@@ -20,6 +28,18 @@ const mongoose = require('mongoose')
 //     user_id: 
 // })
 
+app.post('/detect',model , function(req, res) {
+
+    var obj = req.body.jsonFile
+    
+
+    fs.writeFile("output.json",JSON.stringify(obj),"utf-8", function(err) {
+	if(err)
+	    return console.log(err)
+    })
+
+    res.send('success')
+})
 
 
 app.listen(config.SERVER_PORT, ()=>{console.log('server started on port '+ config.SERVER_PORT)})
