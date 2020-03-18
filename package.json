@@ -4,7 +4,7 @@
   "description": "Server code to the web based intrusion detection ",
   "main": "server.js",
   "scripts": {
-    "dev":"nodemon server.js"
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
