@@ -18,7 +18,7 @@ users.post('/signup', (req,res) => {
     password:req.body.password,
     email:req.body.email
     }
-    var resp={"key":""}
+    
     User.findOne({
         email: req.body.email
     })
@@ -66,12 +66,15 @@ users.post('/signin',(req,res) => {
                     _id: user._id
                     
             }
-            console.log("password match")
+          
             let token = jwt.sign(payload,process.env.SECRET_KEY, { 
                 expiresIn: 1440
             })
-            res.send(token)
+            
+          //  res.send(token)
+            
             res.json({"key":"0030"})
+            console.log("password match")
             }
          else{ 
             res.json({"key":"0020"})
