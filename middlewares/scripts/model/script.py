@@ -1,8 +1,9 @@
 
 import joblib
 from numpy import load
-model = joblib.load('finalized_model.sav')
+model = joblib.load('middlewares/scripts/model/finalized_model.sav')
 
+import sys
 import pandas as pd
 import numpy as np
 import sklearn
@@ -15,29 +16,77 @@ col_names = ["duration","protocol_type","service","flag","src_bytes",
     "diff_srv_rate","srv_diff_host_rate","dst_host_count","dst_host_srv_count",
     "dst_host_same_srv_rate","dst_host_diff_srv_rate","dst_host_same_src_port_rate",
     "dst_host_srv_diff_host_rate","dst_host_serror_rate","dst_host_srv_serror_rate",
-    "dst_host_rerror_rate","dst_host_srv_rerror_rate","label"]
+    "dst_host_rerror_rate","dst_host_srv_rerror_rate","label","level"]
 
 
-df = pd.read_csv("./output.csv", header=None, names = col_names)
+df = pd.read_csv("middlewares/scripts/model/output.csv", header=None, names = col_names)
 
 from sklearn.preprocessing import LabelEncoder,OneHotEncoder
 categorical_columns=['protocol_type', 'service', 'flag']
 categorical_columns=['protocol_type', 'service', 'flag'] 
 df_categorical_values = df[categorical_columns]
 
-dumcols=['Protocol_type_icmp', 'Protocol_type_tcp', 'Protocol_type_udp', 'service_IRC', 'service_X11', 'service_Z39_50', 'service_aol', 'service_auth', 'service_bgp', 'service_courier', 'service_csnet_ns', 'service_ctf', 'service_daytime', 'service_discard', 'service_domain', 'service_domain_u', 'service_echo', 'service_eco_i', 'service_ecr_i', 'service_efs', 'service_exec', 'service_finger', 'service_ftp', 'service_ftp_data', 'service_gopher', 'service_harvest', 'service_hostnames', 'service_http', 'service_http_2784', 'service_http_443', 'service_http_8001', 'service_imap4', 'service_iso_tsap', 'service_klogin', 'service_kshell', 'service_ldap', 'service_link', 'service_login', 'service_mtp', 'service_name', 'service_netbios_dgm', 'service_netbios_ns', 'service_netbios_ssn', 'service_netstat', 'service_nnsp', 'service_nntp', 'service_ntp_u', 'service_other', 'service_pm_dump', 'service_pop_2', 'service_pop_3', 'service_printer', 'service_private', 'service_red_i', 'service_remote_job', 'service_rje', 'service_shell', 'service_smtp', 'service_sql_net', 'service_ssh', 'service_sunrpc', 'service_supdup', 'service_systat', 'service_telnet', 'service_tftp_u', 'service_tim_i', 'service_time', 'service_urh_i', 'service_urp_i', 'service_uucp', 'service_uucp_path', 'service_vmnet', 'service_whois', 'flag_OTH', 'flag_REJ', 'flag_RSTO', 'flag_RSTOS0', 'flag_RSTR', 'flag_S0', 'flag_S1', 'flag_S2', 'flag_S3', 'flag_SF', 'flag_SH']
+unique_protocol=sorted(df.protocol_type.unique())
+string1 = 'Protocol_type_'
+unique_protocol2=[string1 + x for x in unique_protocol]
+# service`
+unique_service=sorted(df.service.unique())
+string2 = 'service_'
+unique_service2=[string2 + x for x in unique_service]
+# flag
+unique_flag=sorted(df.flag.unique())
+string3 = 'flag_'
+unique_flag2=[string3 + x for x in unique_flag]
+# put together
+dumcols=unique_protocol2 + unique_service2 + unique_flag2
 
-df_categorical_values_enc=df_categorical_values.apply(LabelEncoder().fit_transform)
+le=LabelEncoder()
+df_categorical_values_enc=df_categorical_values.apply(le.fit_transform)
 
 enc = OneHotEncoder()
 df_categorical_values_encenc = enc.fit_transform(df_categorical_values_enc)
 df_cat_data = pd.DataFrame(df_categorical_values_encenc.toarray(),columns=dumcols)
 
+import pickle 
+pkl_file = open('middlewares/scripts/model/encodingservice.pkl', 'rb')
+trainservice = pickle.load(pkl_file) 
+pkl_file.close()
+pkl_file = open('middlewares/scripts/model/encodingproto.pkl', 'rb')
+trainproto = pickle.load(pkl_file) 
+pkl_file.close()
+pkl_file = open('middlewares/scripts/model/encodingflag.pkl', 'rb')
+trainflag = pickle.load(pkl_file) 
+pkl_file.close()
+
+testservice=df['service'].tolist()
+testflag=df['service'].tolist()
+testproto=df['protocol_type'].tolist()
+
+difference_s=list(set(trainservice) - set(testservice))
+string = 'service_'
+difference=[string + x for x in difference_s]
+for col in difference:
+    df_cat_data[col] = 0
+
+difference_p=list(set(trainproto) - set(testproto))
+string = 'Protocol_type_'
+difference_pr=[string + x for x in difference_p]
+for col in difference_pr:
+    df_cat_data[col] = 0
+
+
+difference_f=list(set(trainflag) - set(testflag))
+string = 'flag_'
+difference_ff=[string + x for x in difference_f]
+for col in difference_ff:
+    df_cat_data[col] = 0
+
+
 newdf=df.join(df_cat_data)
 newdf.drop('flag', axis=1, inplace=True)
 newdf.drop('protocol_type', axis=1, inplace=True)
 newdf.drop('service', axis=1, inplace=True)
-
+newdf.drop('level', axis=1, inplace=True)
 labeldf=newdf['label']
 newlabeldf=labeldf.replace({ 'normal' : 0, 'neptune' : 1 ,'back': 1, 'land': 1, 'pod': 1, 'smurf': 1, 'teardrop': 1,'mailbomb': 1, 'apache2': 1, 'processtable': 1, 'udpstorm': 1, 'worm': 1,
                            'ipsweep' : 2,'nmap' : 2,'portsweep' : 2,'satan' : 2,'mscan' : 2,'saint' : 2
@@ -57,4 +106,11 @@ rfecolindex_rand=[1, 2, 19, 21, 25, 26, 30, 31, 32, 33, 34, 38, 120]
 X_test2=newdf_X[:,rfecolindex_rand]
 
 result = model.predict(X_test2)
-print(result)
+for i in result :
+    if i !=0 :
+        print("reject")
+        sys.exit()
+        break
+
+print("accept")
+
