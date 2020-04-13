@@ -30,13 +30,7 @@ app.use(bodyParser.json())
 
 app.post('/detect',model , function(req, res) {
 
-    var obj = req.body.jsonFile
-    
-
-    fs.writeFile("output.json",JSON.stringify(obj),"utf-8", function(err) {
-	if(err)
-	    return console.log(err)
-    })
+    console.log("\nProcessing request..\n")
 
     res.send('success')
 })
