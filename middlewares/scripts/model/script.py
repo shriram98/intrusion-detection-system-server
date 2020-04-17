@@ -1,7 +1,7 @@
 
 import joblib
 from numpy import load
-model = joblib.load('middlewares/scripts/model/finalized_model.sav')
+model = joblib.load('middlewares/scripts/model/lib/finalized_model.sav')
 
 import sys
 import pandas as pd
@@ -19,7 +19,14 @@ col_names = ["duration","protocol_type","service","flag","src_bytes",
     "dst_host_rerror_rate","dst_host_srv_rerror_rate","label","level"]
 
 
-df = pd.read_csv("middlewares/scripts/model/output.csv", header=None, names = col_names)
+
+with open("network_packets/" + sys.argv[1] ,'r') as f:
+    with open("middlewares/scripts/model/test.csv",'w') as f1:
+        next(f) # skip header line
+        for line in f:
+            f1.write(line)
+
+df = pd.read_csv("middlewares/scripts/model/test.csv", header=None, names = col_names)
 
 from sklearn.preprocessing import LabelEncoder,OneHotEncoder
 categorical_columns=['protocol_type', 'service', 'flag']
@@ -48,13 +55,13 @@ df_categorical_values_encenc = enc.fit_transform(df_categorical_values_enc)
 df_cat_data = pd.DataFrame(df_categorical_values_encenc.toarray(),columns=dumcols)
 
 import pickle 
-pkl_file = open('middlewares/scripts/model/encodingservice.pkl', 'rb')
+pkl_file = open('middlewares/scripts/model/lib/encodingservice.pkl', 'rb')
 trainservice = pickle.load(pkl_file) 
 pkl_file.close()
-pkl_file = open('middlewares/scripts/model/encodingproto.pkl', 'rb')
+pkl_file = open('middlewares/scripts/model/lib/encodingproto.pkl', 'rb')
 trainproto = pickle.load(pkl_file) 
 pkl_file.close()
-pkl_file = open('middlewares/scripts/model/encodingflag.pkl', 'rb')
+pkl_file = open('middlewares/scripts/model/lib/encodingflag.pkl', 'rb')
 trainflag = pickle.load(pkl_file) 
 pkl_file.close()
 
@@ -106,6 +113,9 @@ rfecolindex_rand=[1, 2, 19, 21, 25, 26, 30, 31, 32, 33, 34, 38, 120]
 X_test2=newdf_X[:,rfecolindex_rand]
 
 result = model.predict(X_test2)
+
+print(result)
+
 for i in result :
     if i !=0 :
         print("reject")
