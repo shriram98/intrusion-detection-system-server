@@ -1,2 +1,3 @@
 node_modules/
 network_packets/
+.server_log

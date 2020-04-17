@@ -15,7 +15,7 @@ module.exports = async (req, res, next) => {
 
     packetName = new Date()
 
-    fs.writeFile("../network_packets" + packetName.toISOString() + ".csv", packetCSV,"utf-8", function(err) {
+    fs.writeFile("../network_packets/" + packetName.toISOString() + ".csv", packetCSV,"utf-8", function(err) {
         if(err)
             return update_server_log("Not able to create packet CSV file", "ERR")
     })
@@ -43,7 +43,7 @@ module.exports = async (req, res, next) => {
             next()
         }
         else {
-            if(generateLog(packetName, result)) {
+            if(generateLog("network_packets/" + packetName.toISOString() + ".csv", result)) {
                 res.send("\nPacket is Vulnerable to " + result + " attack\n")
                 update_server_log("Packet is Vulnerable to " + result + " attack", "MSG")
             }
