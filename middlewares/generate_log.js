@@ -1,9 +1,9 @@
-const NetworkPackets = require('../models/NetworkPackets')
+const NetworkPacket = require('../models/NetworkPacket')
 const Log = require('../models/Log')
 
 const update_server_log = require('../utils/server_log')
 
-module.exports = (url, attack_name) => {
+module.exports = async (packetDetails, attack_name) => {
 
     let errorFlag = false
 
@@ -11,11 +11,11 @@ module.exports = (url, attack_name) => {
     let packetId
     
     const packetData = {
-        attack_name,
-        url
+        vulnerability: attack_name,
+        ...packetDetails,
     }
 
-    NetworkPackets.create(packetData)
+    await NetworkPacket.create(packetData)
         .then(packet => {
             packetId = packet._id
             update_server_log("Network Packet Url Saved to the database", "MSG")
@@ -27,7 +27,7 @@ module.exports = (url, attack_name) => {
 
     // generate log entry in in log table
 
-    if(errorFlag == false) {
+    if(errorFlag == true) {
         update_server_log("Error Occured; Resend the request; No Database changes made", "ERR")
         console.log("Error occured while processing.\n Rerun the request again")
         return false
@@ -38,8 +38,10 @@ module.exports = (url, attack_name) => {
     const logData = {
         timestamp: new Date(),
         isNotified: true,
-        param_id: packetId
+        param_id: []
     }
+
+    logData.param_id.push(packetId)
 
     Log.create(logData)
         .then(log => {

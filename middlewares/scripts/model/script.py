@@ -1,9 +1,8 @@
-
+import sys
 import joblib
 from numpy import load
 model = joblib.load('middlewares/scripts/model/lib/finalized_model.sav')
 
-import sys
 import pandas as pd
 import numpy as np
 import sklearn
@@ -30,7 +29,6 @@ df = pd.read_csv("middlewares/scripts/model/test.csv", header=None, names = col_
 
 from sklearn.preprocessing import LabelEncoder,OneHotEncoder
 categorical_columns=['protocol_type', 'service', 'flag']
-categorical_columns=['protocol_type', 'service', 'flag'] 
 df_categorical_values = df[categorical_columns]
 
 unique_protocol=sorted(df.protocol_type.unique())
@@ -103,24 +101,31 @@ newdf['label'] = newlabeldf
 newdf_X=newdf.drop(columns='label')
 newdf_Y=newlabeldf
 
+newdf_X=newdf_X[['duration', 'src_bytes', 'dst_bytes', 'land', 'wrong_fragment', 'urgent', 'hot', 'num_failed_logins', 'logged_in', 'num_compromised', 'root_shell', 'su_attempted', 'num_root', 'num_file_creations', 'num_shells', 'num_access_files', 'num_outbound_cmds', 'is_host_login', 'is_guest_login', 'count', 'srv_count', 'serror_rate', 'srv_serror_rate', 'rerror_rate', 'srv_rerror_rate', 'same_srv_rate', 'diff_srv_rate', 'srv_diff_host_rate', 'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate', 'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate', 'dst_host_srv_diff_host_rate', 'dst_host_serror_rate', 'dst_host_srv_serror_rate', 'dst_host_rerror_rate', 'dst_host_srv_rerror_rate', 'Protocol_type_icmp', 'Protocol_type_tcp', 'Protocol_type_udp', 'service_IRC', 'service_X11', 'service_Z39_50', 'service_aol', 'service_auth', 'service_bgp', 'service_courier', 'service_csnet_ns', 'service_ctf', 'service_daytime', 'service_discard', 'service_domain', 'service_domain_u', 'service_echo', 'service_eco_i', 'service_ecr_i', 'service_efs', 'service_exec', 'service_finger', 'service_ftp', 'service_ftp_data', 'service_gopher', 'service_harvest', 'service_hostnames', 'service_http', 'service_http_2784', 'service_http_443', 'service_http_8001', 'service_imap4', 'service_iso_tsap', 'service_klogin', 'service_kshell', 'service_ldap', 'service_link', 'service_login', 'service_mtp', 'service_name', 'service_netbios_dgm', 'service_netbios_ns', 'service_netbios_ssn', 'service_netstat', 'service_nnsp', 'service_nntp', 'service_ntp_u', 'service_other', 'service_pm_dump', 'service_pop_2', 'service_pop_3', 'service_printer', 'service_private', 'service_red_i', 'service_remote_job', 'service_rje', 'service_shell', 'service_smtp', 'service_sql_net', 'service_ssh', 'service_sunrpc', 'service_supdup', 'service_systat', 'service_telnet', 'service_tftp_u', 'service_tim_i', 'service_time', 'service_urh_i', 'service_urp_i', 'service_uucp', 'service_uucp_path', 'service_vmnet', 'service_whois', 'flag_OTH', 'flag_REJ', 'flag_RSTO', 'flag_RSTOS0', 'flag_RSTR', 'flag_S0', 'flag_S1', 'flag_S2', 'flag_S3', 'flag_SF', 'flag_SH']]
+
 colNames=list(newdf_X)
 
-from sklearn.preprocessing import StandardScaler
-sc_x = StandardScaler()
-newdf_X = sc_x.fit_transform(newdf_X)
+rfecolname_rand=['src_bytes', 'dst_bytes', 'count', 'srv_count', 'same_srv_rate', 'diff_srv_rate', 'dst_host_srv_count', 'dst_host_same_srv_rate', 'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate', 'dst_host_serror_rate', 'Protocol_type_icmp', 'flag_SF']
+rfecolindex_rand=list(newdf_X.columns.get_loc(c) for c in rfecolname_rand if c in colNames)
 
-rfecolindex_rand=[1, 2, 19, 21, 25, 26, 30, 31, 32, 33, 34, 38, 120]
+# from sklearn.preprocessing import StandardScaler
+# sc_x = StandardScaler()
+# newdf_X = sc_x.fit_transform(newdf_X)
+
+# from sklearn.externals.joblib import load   
+# from joblib import load
+
+sc= pickle.load(open('middlewares/scripts/model/lib/std_scaler.pkl','rb'))
+newdf_X = sc.transform(newdf_X)
+
 X_test2=newdf_X[:,rfecolindex_rand]
 
 result = model.predict(X_test2)
 
-print(result)
+pre= pd.DataFrame(data=result)
+pre=pre.replace({ 0: 'normal' , 1:'DOS', 2:'probe' ,3: 'R2l',4 :'U2l'})
+result=pre.to_numpy()
 
-for i in result :
-    if i !=0 :
-        print("reject")
-        sys.exit()
-        break
+ans = result[0]
 
-print("accept")
-
+print(ans[0])
