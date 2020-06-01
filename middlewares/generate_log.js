@@ -15,7 +15,7 @@ module.exports = async (packetDetails, attack_name) => {
         ...packetDetails,
     }
 
-    await NetworkPacket.create(packetData)
+    NetworkPackets.create(packetData)
         .then(packet => {
             packetId = packet._id
             update_server_log("Network Packet Url Saved to the database", "MSG")
