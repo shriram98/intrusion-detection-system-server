@@ -17,8 +17,8 @@ app.use('/user',Users)
 
 var url="mongodb://localhost:27017/admindb"
 mongoose.connect(url,{useNewUrlParser:true})
-.then(() => console.log("MongoDB connected"))
-.catch(err => console.log(err))
+    .then(() => console.log("MongoDB connected"))
+    .catch(err => console.log(err))
 
 
 // mongoose.connect(`mongodb://${config.database.url}/${config.database.name}`)

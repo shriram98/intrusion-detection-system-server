@@ -8,10 +8,10 @@ const LogSchema = new Schema({
     isNotified: {
         type: Boolean
     },
-    param_id: {
+    param_id: [{
         type: Schema.Types.ObjectId, 
-        ref: 'NetworkPackets'
-    }
+        ref: 'NetworkPacket'
+    }]
 })
 
 module.exports = Log = mongoose.model('log', LogSchema)

@@ -1,5 +1,6 @@
 // this is the middleware function which checks for any kind of intrusions.
 
+const csvjson = require('csvjson')
 const {spawn} = require('child_process')
 const fs = require('fs')
 
@@ -13,17 +14,19 @@ module.exports = async (req, res, next) => {
     // get the packet details.
     var packetCSV = req.body.csvFile
 
+    var packetJson = csvjson.toObject(packetCSV)[0];
+
     packetName = new Date()
 
-    fs.writeFile("../network_packets" + packetName.toISOString() + ".csv", packetCSV,"utf-8", function(err) {
+    fs.writeFile("network_packets/" + packetName.toISOString() + ".csv", packetCSV,"utf-8", function(err) {
         if(err)
-            return update_server_log("Not able to create packet CSV file", "ERR")
+            return update_server_log("Not able to create packet CSV file" + err, "ERR")
     })
 
-    fs.writeFile("scripts/model/output.csv", packetCSV,"utf-8", function(err) {
-        if(err)
-            return update_server_log("Not able to fetch preprecessing information for running the model", "ERR")
-    })
+    // fs.writeFile("scripts/model/output.csv", packetCSV,"utf-8", function(err) {
+    //     if(err)
+    //         return update_server_log("Not able to fetch preprecessing information for running the model "+ err, "ERR")
+    // })
 
     // preprocess the data  
     
@@ -38,12 +41,12 @@ module.exports = async (req, res, next) => {
     const python = spawn('python3', ["middlewares/scripts/model/script.py", packetName.toISOString() + ".csv"])
     python.stdout.on('data', async (data) => {
         result = data.toString()
-        if(result == "accept"){
+        if(result == 'normal'){
             console.log("\nThe packet has no vulnerability\n")
             next()
         }
         else {
-            if(generateLog(packetName, result)) {
+            if(generateLog(packetJson, result)) {
                 res.send("\nPacket is Vulnerable to " + result + " attack\n")
                 update_server_log("Packet is Vulnerable to " + result + " attack", "MSG")
             }
