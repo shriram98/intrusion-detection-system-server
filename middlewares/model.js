@@ -41,8 +41,9 @@ module.exports = async (req, res, next) => {
     const python = spawn('python3', ["middlewares/scripts/model/script.py", packetName.toISOString() + ".csv"])
     python.stdout.on('data', async (data) => {
         result = data.toString()
-        if(result == 'normal'){
-            console.log("\nThe packet has no vulnerability\n")
+
+        if(result.trim() === "normal"){
+            update_server_log("The packet has no vulnerability", "MSG")
             next()
         }
         else {
