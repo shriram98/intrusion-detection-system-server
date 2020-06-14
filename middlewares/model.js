@@ -48,8 +48,16 @@ module.exports = async (req, res, next) => {
         }
         else {
             if(generateLog(packetJson, result)) {
-                res.send("\nPacket is Vulnerable to " + result + " attack\n")
+                var log
                 update_server_log("Packet is Vulnerable to " + result + " attack", "MSG")
+                fs.readFile('.server_log', 'utf8', function(err, data) {
+                    if (err) throw err;
+                    var obj = {
+                        message : "\nPacket is Vulnerable to " + result + " attack\n",
+                        log: data
+                    }
+                    res.send(obj)
+                });
             }
             else {
                 res.send("Error Occured Resend the request")
