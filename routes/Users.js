@@ -54,7 +54,7 @@ users.post('/signup', (req,res) => {
 
 users.post('/signin',(req,res) => {
 
-     console.log("joann")
+     
     User.findOne({email:req.body.email})
    
     .then(user => {
