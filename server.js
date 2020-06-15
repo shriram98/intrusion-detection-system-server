@@ -38,7 +38,10 @@ app.post('/detect',model , function(req, res) {
 
     console.log("\nProcessing request..\n")
 
-    res.send('The packet has no vulnerability')
+    res.send({
+        message: 'The packet has no vulnerability',
+        isDownload: false
+    })
 })
 
 

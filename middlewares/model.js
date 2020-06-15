@@ -54,13 +54,17 @@ module.exports = async (req, res, next) => {
                     if (err) throw err;
                     var obj = {
                         message : "\nPacket is Vulnerable to " + result + " attack\n",
-                        log: data
+                        log: data,
+                        isDownload: true
                     }
                     res.send(obj)
                 });
             }
             else {
-                res.send("Error Occured Resend the request")
+                res.send({
+                    message: "Error Occured Resend the request",
+                    isDownload: false
+                })
             }
         }
     })
